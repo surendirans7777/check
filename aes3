@@ -1,0 +1,38 @@
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives import padding
+import base64
+
+# Get the secret key from the user
+secret_key_str = input("Enter the secret key (16 characters): ")
+
+# Check if the secret key has the correct length
+if len(secret_key_str) != 16:
+    print("Invalid secret key. Key must be 16 characters.")
+    exit()
+
+# Convert the secret key to bytes
+secret_key = secret_key_str.encode('utf-8')
+
+# Get the encrypted data (base64-encoded) from the user
+encrypted_data = input("Enter the base64-encoded encrypted data: ")
+
+# Decode base64 data
+try:
+    encrypted_bytes = base64.b64decode(encrypted_data)
+except ValueError:
+    print("Invalid base64-encoded encrypted data.")
+    exit()
+
+# Create AES cipher object
+cipher = Cipher(algorithms.AES(secret_key), modes.CBC(b'\x00' * 16))
+decryptor = cipher.decryptor()
+
+# Decrypt the data
+padded_decrypted_data = decryptor.update(encrypted_bytes) + decryptor.finalize()
+
+# Remove padding
+unpadder = padding.PKCS7(algorithms.AES.block_size).unpadder()
+decrypted_data = unpadder.update(padded_decrypted_data) + unpadder.finalize()
+
+# Print decrypted data
+print("Decrypted data:", decrypted_data.decode('utf-8'))
