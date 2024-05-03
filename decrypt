@@ -1,0 +1,39 @@
+import tkinter as tk
+from tkinter import messagebox
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad
+import base64
+
+def decrypt_aes():
+    secret_key = key_entry.get().encode('utf-8')
+    ciphertext = ciphertext_entry.get()
+    
+    try:
+        cipher = AES.new(secret_key, AES.MODE_ECB)
+        decrypted_bytes = cipher.decrypt(base64.b64decode(ciphertext))
+        decrypted_text = unpad(decrypted_bytes, AES.block_size).decode('utf-8')
+        result_label.config(text="Decrypted text: " + decrypted_text)
+    except Exception as e:
+        messagebox.showerror("Error", str(e))
+
+# GUI setup
+root = tk.Tk()
+root.title("AES-128 Decryption Tool")
+
+key_label = tk.Label(root, text="Secret Key:")
+key_label.pack()
+key_entry = tk.Entry(root)
+key_entry.pack()
+
+ciphertext_label = tk.Label(root, text="Ciphertext:")
+ciphertext_label.pack()
+ciphertext_entry = tk.Entry(root)
+ciphertext_entry.pack()
+
+decrypt_button = tk.Button(root, text="Decrypt", command=decrypt_aes)
+decrypt_button.pack()
+
+result_label = tk.Label(root, text="")
+result_label.pack()
+
+root.mainloop()
