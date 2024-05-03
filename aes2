@@ -1,0 +1,39 @@
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad, pad
+import base64
+
+# Get the secret key from the user
+secret_key_str = input("Enter the secret key (16 characters): ")
+
+# Check if the secret key has the correct length
+if len(secret_key_str) != 16:
+    print("Invalid secret key. Key must be 16 characters.")
+    exit()
+
+# Convert the secret key to bytes
+secret_key = secret_key_str.encode('utf-8')
+
+# Get the encrypted data (base64-encoded) from the user
+encrypted_data = input("Enter the base64-encoded encrypted data: ")
+
+# Decode base64 data
+try:
+    encrypted_bytes = base64.b64decode(encrypted_data)
+except ValueError:
+    print("Invalid base64-encoded encrypted data.")
+    exit()
+
+# Create AES cipher object
+cipher = AES.new(secret_key, AES.MODE_CBC, iv=b'\x00' * 16)
+
+# Decrypt the data
+decrypted_bytes = cipher.decrypt(encrypted_bytes)
+
+# Pad the decrypted data
+padded_decrypted_data = pad(decrypted_bytes, AES.block_size)
+
+# Remove padding
+decrypted_data = unpad(padded_decrypted_data, AES.block_size)
+
+# Print decrypted data
+print("Decrypted data:", decrypted_data.decode('utf-8'))
