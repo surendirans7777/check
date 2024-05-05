@@ -1,0 +1,41 @@
+from Crypto.Cipher import AES
+import base64
+
+# Secret key
+secret_key_str = "test123123123111"
+
+# Check if the secret key has the correct length and format
+if len(secret_key_str) != 16 or not all(c.isalnum() for c in secret_key_str):
+    print("Invalid secret key. Key must be 16 alphanumeric characters.")
+    exit()
+
+# Convert the secret key to bytes
+secret_key = secret_key_str.encode('utf-8')
+
+# Encrypted data (base64-encoded)
+encrypted_data_and_tag = "vAP7eqD/fCNKjx6iito3OA=="
+
+# Decode base64 data
+try:
+    encrypted_bytes = base64.b64decode(encrypted_data_and_tag)
+except ValueError:
+    print("Invalid base64-encoded encrypted data and authentication tag.")
+    exit()
+
+try:
+    # Create AES cipher object (GCM mode without IV)
+    cipher_mode = AES.MODE_GCM
+    print(f"Using AES mode: {cipher_mode}")
+    cipher = AES.new(secret_key, cipher_mode)
+    print(f"Cipher object: {cipher}")
+
+    # Decrypt the data (ciphertext includes encrypted data and authentication tag)
+    decrypted_bytes = cipher.decrypt_and_verify(encrypted_bytes, None)
+
+    # Print decrypted data
+    print("Decrypted data:", decrypted_bytes.decode('utf-8'))
+
+except ValueError as e:
+    print(f"Error decrypting data: {e}")
+except TypeError as e:
+    print(f"Error initializing cipher: {e}")
