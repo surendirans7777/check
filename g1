@@ -1,0 +1,60 @@
+from Crypto.Util.Padding import unpad  # Only needed if using CBC mode with padding (not recommended)
+import base64
+
+# Get the secret key from the user
+secret_key_str = input("Enter the secret key (16 characters): ")
+
+# Check if the secret key has the correct length
+if len(secret_key_str) != 16:
+    print("Invalid secret key. Key must be 16 characters.")
+    exit()
+
+# Convert the secret key to bytes
+secret_key = secret_key_str.encode('utf-8')
+
+# Get the encrypted data (base64-encoded) from the user
+encrypted_data = input("Enter the base64-encoded encrypted data: ")
+
+# Decode base64 data
+try:
+    encrypted_bytes, tag = base64.b64decode(encrypted_data).split(b':')
+except ValueError:
+    print("Invalid base64-encoded encrypted data.")
+    exit()
+
+# Try importing GCM from Cryptodome.Cipher (newer versions)
+try:
+    from Cryptodome.Cipher import AES, GCM
+    cipher = AES.new(secret_key, AES.MODE_GCM)
+    gcm = GCM(cipher.encryptor)
+
+# If Cryptodome.Cipher.GCM fails, try alternative path (older versions)
+except ImportError:
+    try:
+        from Cryptodome.Protocol import GCM
+        cipher = AES.new(secret_key, AES.MODE_GCM)
+        gcm = GCM(cipher.encryptor)
+        print("Using alternative import path for GCM in pycryptodome (older version).")
+    except ImportError:
+        print("`pycryptodome` doesn't have GCM functionality. Installing `cryptography` instead.")
+
+        # Install cryptography (if needed)
+        # ... You can uncomment and replace this line with the actual installation command ...
+        # #!/bin/bash
+        # pip install cryptography
+
+        # Import from cryptography (if installed)
+        from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+        cipher = Cipher(algorithms.AES(secret_key), modes.GCM())
+        gcm = cipher.encryptor()
+        print("Using cryptography for GCM.")
+
+# Decrypt the data with authentication tag verification
+try:
+    decrypted_bytes, authentication_tag = gcm.decrypt_and_verify(secret_key, encrypted_bytes, tag)
+except ValueError:
+    print("Decryption failed. Invalid tag or corrupt data.")
+    exit()
+
+# Print decrypted data (no need for unpadding with NoPadding mode)
+print("Decrypted data:", decrypted_bytes.decode('utf-8'))
