@@ -1,0 +1,16 @@
+from Crypto.Cipher import AES
+import base64
+
+# Encrypted data in base64
+encrypted_data = base64.b64decode("vAP7eqD/fCNKjx6iito3OA==")
+
+# Secret key (16 bytes for AES128)
+secret_key = b"1231231231231234"
+
+# Initialize the cipher with AES128 in GCM mode
+cipher = AES.new(secret_key, AES.MODE_GCM, nonce=b'\x00' * 16)
+
+# Decrypt the data
+decrypted_data = cipher.decrypt_and_verify(encrypted_data[0:-16], encrypted_data[-16:])
+
+print("Decrypted data:", decrypted_data.decode('utf-8'))
