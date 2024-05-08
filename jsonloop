@@ -1,0 +1,37 @@
+from Crypto.Cipher import AES
+import base64
+import json
+
+# Secret key (16 bytes for AES128)
+secret_key = b"1231231231231234"
+
+# Initialize the cipher with AES128 in GCM mode
+cipher = AES.new(secret_key, AES.MODE_GCM, nonce=b'\x00' * 16)
+
+# Read JSON data from file
+with open("input_data.json", "r") as file:
+    json_data_list = json.load(file)
+
+# Encrypt each JSON object and store the encrypted data
+encrypted_data_list = []
+for json_data in json_data_list:
+    # Convert JSON data to bytes
+    plaintext = json.dumps(json_data).encode('utf-8')
+
+    # Encrypt the data
+    ciphertext, auth_tag = cipher.encrypt_and_digest(plaintext)
+
+    # Combine the ciphertext and authentication tag
+    encrypted_data = ciphertext + auth_tag
+
+    # Encode the encrypted data to base64
+    encrypted_data_base64 = base64.b64encode(encrypted_data)
+
+    encrypted_data_list.append(encrypted_data_base64.decode('utf-8'))
+
+# Write the encrypted data to a file
+with open("encrypted_data.txt", "w") as file:
+    for encrypted_data in encrypted_data_list:
+        file.write(encrypted_data + "\n")
+
+print("Encrypted data written to 'encrypted_data.txt'")
