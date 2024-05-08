@@ -1,0 +1,51 @@
+from Crypto.Cipher import AES
+import base64
+import json
+
+# Function to encrypt data
+def encrypt_data(data, secret_key):
+    # Convert JSON data to bytes
+    plaintext = json.dumps(data).encode('utf-8')
+
+    # Initialize the cipher with AES128 in GCM mode
+    cipher = AES.new(secret_key, AES.MODE_GCM, nonce=b'\x00' * 16)
+
+    # Encrypt the data
+    ciphertext, auth_tag = cipher.encrypt_and_digest(plaintext)
+
+    # Combine the ciphertext and authentication tag
+    encrypted_data = ciphertext + auth_tag
+
+    # Encode the encrypted data to base64 for transmission or storage
+    encrypted_data_base64 = base64.b64encode(encrypted_data)
+
+    return encrypted_data_base64.decode('utf-8')  # Decode base64 bytes to string
+
+try:
+    # Read JSON data from file
+    with open('input.json', 'r') as file:
+        json_data_list = json.load(file)
+
+    # Secret key (16 bytes for AES128)
+    secret_key = b"1231231231231234"
+
+    # Initialize an empty list to store encrypted payloads
+    encrypted_data_list = []
+
+    # Encrypt each JSON payload
+    for json_data in json_data_list:
+        encrypted_data_list.append(encrypt_data(json_data, secret_key))
+
+    # Write encrypted data to a file
+    with open('encrypted_data.txt', 'w') as file:
+        for encrypted_data in encrypted_data_list:
+            file.write(encrypted_data + '\n')  # Write each encrypted data on a new line
+
+    print("Encryption completed successfully.")
+
+except FileNotFoundError:
+    print("Error: input.json file not found.")
+except json.JSONDecodeError:
+    print("Error: Invalid JSON format in input.json.")
+except Exception as e:
+    print("An error occurred:", str(e))
