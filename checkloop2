@@ -1,0 +1,31 @@
+from Crypto.Cipher import AES
+import base64
+import json
+
+def decrypt_data(encrypted_data, secret_key):
+    # Initialize the cipher with AES128 in GCM mode
+    cipher = AES.new(secret_key, AES.MODE_GCM, nonce=b'\x00' * 16)
+
+    # Decode the ciphertext from base64
+    encrypted_data = base64.b64decode(encrypted_data)
+
+    # Decrypt the data
+    decrypted_data = cipher.decrypt_and_verify(encrypted_data[:-16], encrypted_data[-16:])
+    return decrypted_data.decode('utf-8')
+
+# Secret key (16 bytes for AES128)
+secret_key = b"1231231231231234"
+
+# Read encrypted responses from file
+with open('encrypted_responses.json', 'r') as file:
+    encrypted_responses = json.load(file)
+
+# Iterate over each dictionary in the list
+for encrypted_response in encrypted_responses:
+    # Extract ciphertext from JSON object
+    encrypted_data = encrypted_response["response"]
+
+    # Decrypt the data
+    decrypted_data = decrypt_data(encrypted_data, secret_key)
+
+    print("Decrypted data:", decrypted_data)
